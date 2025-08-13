@@ -1,0 +1,2251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.9.2/lib/qr-code-styling.min.js"></script>
+    <script
+  type="text/javascript"
+  src="https://unpkg.com/qr-border-plugin"
+></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            padding: 5px
+        }
+
+        .tab-btn {
+            transition: all 0.3s ease;
+            border-radius: 12px;
+            padding: 12px 20px;
+            margin: 0 4px;
+            font-weight: 500;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px -8px rgba(102, 126, 234, 0.5);
+        }
+
+        .tab-btn:not(.active) {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .tab-btn:not(.active):hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .input-field {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            padding: 14px 16px;
+        }
+
+        .input-field:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            outline: none;
+        }
+
+        .color-picker {
+            border-radius: 50% !important;
+            width: 40px !important;
+            height: 40px !important;
+            border: 2px solid #e2e8f0 !important;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 0 !important;
+        }
+
+        .color-picker:hover {
+            border-color: #667eea !important;
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .color-picker:focus {
+            border-color: #667eea !important;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+            outline: none;
+        }
+
+        .qr-preview {
+			position: sticky;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
+            border: 3px solid #f1f5f9;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 14px;
+            padding: 14px 24px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            color: white;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px -8px rgba(102, 126, 234, 0.4);
+        }
+
+        .download-btn.secondary {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        }
+
+        .download-btn.secondary:hover {
+            box-shadow: 0 12px 30px -8px rgba(72, 187, 120, 0.4);
+        }
+
+        .settings-card {
+            background: rgba(102, 126, 234, 0.05);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .settings-title {
+            color: #2d3748;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+        }
+
+        .settings-title i {
+            color: #667eea;
+            margin-right: 10px;
+        }
+
+        #qr-container-display {
+            position: sticky;
+            width: 240px;
+            height: 240px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 2px solid #f1f5f9;
+            border-radius: 12px;
+            background: white;
+            flex-shrink: 0;
+        }
+
+        #qr-container-display svg,
+        #qr-container-display canvas {
+            width: 220px !important;
+            height: 220px !important;
+            max-width: 220px !important;
+            max-height: 220px !important;
+            display: block;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+            image-rendering: pixelated;
+            object-fit: contain;
+        }
+
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar { 
+            display: none;
+        }
+
+        #tabs-container {
+            scroll-behavior: smooth;
+        }
+
+        .preset-btn {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .preset-btn:hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .preset-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .social-icon-btn {
+            background: rgba(102, 126, 234, 0.1);
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+            padding: 12px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 60px;
+        }
+
+        .social-icon-btn:hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px -8px rgba(102, 126, 234, 0.3);
+        }
+
+        .social-icon-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .social-icon-btn.active i {
+            color: white !important;
+        }
+
+        /* Animation Effects */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes scaleIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .qr-animate-pulse { animation: pulse 2s infinite; }
+        .qr-animate-rotate { animation: rotate 4s linear infinite; }
+        .qr-animate-fade { animation: fadeIn 1s ease-in; }
+        .qr-animate-scale { animation: scaleIn 0.8s ease-out; }
+
+        /* Shadow Effects */
+        .qr-shadow-soft { box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); }
+        .qr-shadow-hard { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); }
+        .qr-shadow-glow { box-shadow: 0 0 20px rgba(102, 126, 234, 0.5); }
+        .qr-shadow-neon { box-shadow: 0 0 30px rgba(102, 126, 234, 0.8), 0 0 60px rgba(102, 126, 234, 0.4); }
+
+        /* Border Effects */
+        .qr-border-solid { border: 4px solid #667eea; }
+        .qr-border-dashed { border: 4px dashed #667eea; }
+        .qr-border-rounded { border: 4px solid #667eea; border-radius: 20px; }
+        .qr-border-circular { border: 4px solid #667eea; border-radius: 50%; }
+
+        /* 3D Effects */
+        .qr-effect-emboss { 
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+            transform: translateZ(0);
+        }
+        .qr-effect-inset { 
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .qr-effect-raised { 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .qr-effect-perspective { 
+            transform: perspective(500px) rotateX(10deg);
+        }    
+    </style>
+</head>
+<body>
+    <div class="min-h-screen py-8 px-4">
+        <div class="max-w-6xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-10">
+                <h1 class="text-5xl font-bold text-white mb-4">
+                    <i class="fas fa-qrcode mr-4"></i>
+                    QR Code Generator
+                </h1>
+                <p class="text-xl text-white opacity-90">Create beautiful, Facebookizable QR codes in seconds</p>
+            </div>
+
+            <!-- Main Container -->
+            <div class="main-container p-8">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+                    <!-- Left Panel - Input & Settings -->
+                    <div class="lg:col-span-2 space-y-6">
+
+                        <!-- Data Input Section -->
+                        <div class="settings-card">
+                            <h2 class="settings-title text-xl">
+                                <i class="fas fa-edit"></i>
+                                Data Input
+                            </h2>
+
+                            <!-- Main Tabs -->
+                            <div class="mb-6">
+                                <div class="flex space-x-2 mb-4">
+                                    <button class="tab-btn active" data-main-tab="data-input">
+                                        <i class="fas fa-edit mr-2"></i>Data Input
+                                    </button>
+                                    <button class="tab-btn" data-main-tab="design">
+                                        <i class="fas fa-palette mr-2"></i>Design
+                                    </button>
+                                </div>
+
+                                <!-- Data Input Sub-tabs -->
+                                <div id="data-input-tabs" class="relative">
+                                    <button id="scroll-left" class="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white shadow-lg rounded-full w-10 h-10 flex items-center justify-center text-gray-600 hover:text-blue-600 hover:shadow-xl transition-all duration-300">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <button id="scroll-right" class="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white shadow-lg rounded-full w-10 h-10 flex items-center justify-center text-gray-600 hover:text-blue-600 hover:shadow-xl transition-all duration-300">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                    <div id="tabs-container" class="flex overflow-x-auto scrollbar-hide space-x-2 pb-2 mx-12">
+                                        <button class="tab-btn active" data-tab="text">
+                                            <i class="fas fa-font mr-2"></i>Text
+                                        </button>
+                                        <button class="tab-btn" data-tab="url">
+                                            <i class="fas fa-link mr-2"></i>URL
+                                        </button>
+                                        <button class="tab-btn" data-tab="wifi">
+                                            <i class="fas fa-wifi mr-2"></i>WiFi
+                                        </button>
+                                        <button class="tab-btn" data-tab="contact">
+                                            <i class="fas fa-address-card mr-2"></i>Contact
+                                        </button>
+                                        <button class="tab-btn" data-tab="email">
+                                            <i class="fas fa-envelope mr-2"></i>Email
+                                        </button>
+                                        <button class="tab-btn" data-tab="sms">
+                                            <i class="fas fa-sms mr-2"></i>SMS
+                                        </button>
+                                        <button class="tab-btn" data-tab="whatsapp">
+                                            <i class="fab fa-whatsapp mr-2"></i>WhatsApp
+                                        </button>
+                                        <button class="tab-btn" data-tab="instagram">
+                                            <i class="fab fa-instagram mr-2"></i>Instagram
+                                        </button>
+                                        <button class="tab-btn" data-tab="facebook">
+                                            <i class="fab fa-facebook mr-2"></i>Facebook
+                                        </button>
+                                        <button class="tab-btn" data-tab="twitter">
+                                            <i class="fab fa-x-twitter mr-2"></i>Twitter
+                                        </button>
+                                        <button class="tab-btn" data-tab="youtube">
+                                            <i class="fab fa-youtube mr-2"></i>YouTube
+                                        </button>
+                                        <button class="tab-btn" data-tab="tiktok">
+                                            <i class="fab fa-tiktok mr-2"></i>TikTok
+                                        </button>
+                                        <button class="tab-btn" data-tab="applink">
+                                            <i class="fas fa-mobile-alt mr-2"></i>App Link
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Main Tab Content -->
+                            <div class="main-tab-content">
+                                <!-- Data Input Section -->
+                                <div id="data-input-main" class="main-tab-pane">
+                                    <div class="tab-content">
+                                        <div id="text-tab" class="tab-pane">
+                                            <label class="block text-sm font-semibold text-gray-700 mb-3">Enter Text:</label>
+                                            <textarea id="text-input" class="input-field w-full" rows="4" placeholder="Enter your text here...">QR</textarea>
+                                        </div>
+
+                                        <div id="url-tab" class="tab-pane hidden">
+                                            <label class="block text-sm font-semibold text-gray-700 mb-3">Website URL:</label>
+                                            <input type="url" id="url-input" class="input-field w-full" placeholder="https://example.com">
+                                        </div>
+
+                                        <div id="wifi-tab" class="tab-pane hidden space-y-4">
+                                            <div>
+                                                <label class="block text-sm font-semibold text-gray-700 mb-2">Network Name:</label>
+                                                <input type="text" id="wifi-ssid" class="input-field w-full" placeholder="WiFi Network Name">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-semibold text-gray-700 mb-2">Password:</label>
+                                                <input type="password" id="wifi-password" class="input-field w-full" placeholder="WiFi Password">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-semibold text-gray-700 mb-2">Security:</label>
+                                                <select id="wifi-security" class="input-field w-full">
+                                                    <option value="WPA">WPA/WPA2</option>
+                                                    <option value="WEP">WEP</option>
+                                                    <option value="nopass">Open</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div id="contact-tab" class="tab-pane hidden space-y-4">
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">First Name:</label>
+                                                    <input type="text" id="contact-fname" class="input-field w-full" placeholder="John">
+                                                </div>
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Last Name:</label>
+                                                    <input type="text" id="contact-lname" class="input-field w-full" placeholder="Doe">
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-semibold text-gray-700 mb-2">Phone:</label>
+                                                <input type="tel" id="contact-phone" class="input-field w-full" placeholder="+1234567890">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-semibold text-gray-700 mb-2">Email:</label>
+                                                <input type="email" id="contact-email" class="input-field w-full" placeholder="john@example.com">
+                                            </div>
+                                        </div>
+
+                                        <div id="email-tab" class="tab-pane hidden space-y-4">
+                                            <div>
+                                                <label class="block text-sm font-semibold text-gray-700 mb-2">Email Address:</label>
+                                                <input type="email" id="email-to" class="input-field w-full" placeholder="recipient@example.com">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-semibold text-gray-700 mb-2">Subject:</label>
+                                                <input type="text" id="email-subject" class="input-field w-full" placeholder="Email subject">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-semibold text-gray-700 mb-2">Message:</label>
+                                                <textarea id="email-body" class="input-field w-full" rows="3" placeholder="Email message..."></textarea>
+                                            </div>
+                                        </div>
+
+                                        <div id="sms-tab" class="tab-pane hidden space-y-4">
+                                            <div>
+                                                <label class="block text-sm font-semibold text-gray-700 mb-2">Phone Number:</label>
+                                                <input type="tel" id="sms-phone" class="input-field w-full" placeholder="+1234567890">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-semibold text-gray-700 mb-2">Message:</label>
+                                                <textarea id="sms-message" class="input-field w-full" rows="3" placeholder="SMS message..."></textarea>
+                                            </div>
+                                        </div>
+
+                                        <div id="whatsapp-tab" class="tab-pane hidden space-y-4">
+                                            <div>
+                                                <label class="block text-sm font-semibold text-gray-700 mb-2">Phone Number:</label>
+                                                <input type="tel" id="whatsapp-phone" class="input-field w-full" placeholder="+1234567890">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-semibold text-gray-700 mb-2">Message:</label>
+                                                <textarea id="whatsapp-message" class="input-field w-full" rows="3" placeholder="WhatsApp message..."></textarea>
+                                            </div>
+                                        </div>
+
+                                        <div id="instagram-tab" class="tab-pane hidden">
+                                            <div>
+                                                <label class="block text-sm font-semibold text-gray-700 mb-2">Instagram Username:</label>
+                                                <input type="text" id="instagram-username" class="input-field w-full" placeholder="username">
+                                                <p class="text-xs text-gray-500 mt-1">Enter username without @ symbol</p>
+                                            </div>
+                                        </div>
+
+                                        <div id="facebook-tab" class="tab-pane hidden space-y-4">
+                                            <div>
+                                                <label class="block text-sm font-semibold text-gray-700 mb-2">Facebook Profile/Page:</label>
+                                                <input type="text" id="facebook-profile" class="input-field w-full" placeholder="username or page name">
+                                                <p class="text-xs text-gray-500 mt-1">Enter username, page name, or full Facebook URL</p>
+                                            </div>
+                                        </div>
+
+                                        <div id="twitter-tab" class="tab-pane hidden space-y-4">
+                                            <div>
+                                                <label class="block text-sm font-semibold text-gray-700 mb-2">Twitter Username:</label>
+                                                <input type="text" id="twitter-username" class="input-field w-full" placeholder="username">
+                                                <p class="text-xs text-gray-500 mt-1">Enter username without @ symbol</p>
+                                            </div>
+                                        </div>
+
+                                        <div id="youtube-tab" class="tab-pane hidden space-y-4">
+                                            <div>
+                                                <label class="block text-sm font-semibold text-gray-700 mb-2">YouTube Channel/Video:</label>
+                                                <input type="text" id="youtube-link" class="input-field w-full" placeholder="Channel name, video ID, or full URL">
+                                                <p class="text-xs text-gray-500 mt-1">Enter channel name, video ID, or full YouTube URL</p>
+                                            </div>
+                                        </div>
+
+                                        <div id="tiktok-tab" class="tab-pane hidden">
+                                            <div>
+                                                <label class="block text-sm font-semibold text-gray-700 mb-2">TikTok Username:</label>
+                                                <input type="text" id="tiktok-username" class="input-field w-full" placeholder="username">
+                                                <p class="text-xs text-gray-500 mt-1">Enter username without @ symbol</p>
+                                            </div>
+                                        </div>
+
+                                        <div id="applink-tab" class="tab-pane hidden space-y-4">
+                                            <div>
+                                                <label class="block text-sm font-semibold text-gray-700 mb-2">App Store URL:</label>
+                                                <input type="url" id="applink-url" class="input-field w-full" placeholder="https://apps.apple.com/app/...">
+                                                <p class="text-xs text-gray-500 mt-1">Enter App Store, Google Play, or any app download link</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Style Presets -->
+                                    <div class="settings-card">
+                                        <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                                            <i class="fas fa-bookmark text-blue-600 mr-2"></i>
+                                            Style Presets
+                                        </h4>
+                                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                            <button class="preset-btn" data-preset="default">
+                                                <svg width="16" height="16" viewBox="0 0 21 21" class="mr-2">
+                                                    <rect x="0" y="0" width="3" height="3" fill="#2563eb" rx="0.5"/>
+                                                    <rect x="4" y="0" width="3" height="3" fill="#2563eb" rx="0.5"/>
+                                                    <rect x="8" y="0" width="3" height="3" fill="#2563eb" rx="0.5"/>
+                                                    <rect x="12" y="0" width="3" height="3" fill="#2563eb" rx="1.5"/>
+                                                    <rect x="16" y="0" width="3" height="3" fill="#2563eb" rx="1.5"/>
+                                                    <rect x="0" y="4" width="3" height="3" fill="#2563eb" rx="0.5"/>
+                                                    <rect x="8" y="4" width="3" height="3" fill="#2563eb" rx="0.5"/>
+                                                    <rect x="16" y="4" width="3" height="3" fill="#2563eb" rx="1.5"/>
+                                                    <rect x="0" y="8" width="3" height="3" fill="#2563eb" rx="0.5"/>
+                                                    <rect x="4" y="8" width="3" height="3" fill="#2563eb" rx="0.5"/>
+                                                    <rect x="8" y="8" width="3" height="3" fill="#2563eb" rx="0.5"/>
+                                                    <rect x="12" y="8" width="3" height="3" fill="#2563eb" rx="0.5"/>
+                                                    <rect x="16" y="8" width="3" height="3" fill="#2563eb" rx="1.5"/>
+                                                    <rect x="0" y="12" width="3" height="3" fill="#1d4ed8" rx="1.5"/>
+                                                    <rect x="12" y="12" width="3" height="3" fill="#2563eb" rx="0.5"/>
+                                                    <rect x="16" y="12" width="3" height="3" fill="#1d4ed8" rx="1.5"/>
+                                                    <rect x="0" y="16" width="3" height="3" fill="#1d4ed8" rx="1.5"/>
+                                                    <rect x="4" y="16" width="3" height="3" fill="#2563eb" rx="0.5"/>
+                                                    <rect x="8" y="16" width="3" height="3" fill="#2563eb" rx="0.5"/>
+                                                    <rect x="12" y="16" width="3" height="3" fill="#2563eb" rx="0.5"/>
+                                                    <rect x="16" y="16" width="3" height="3" fill="#1d4ed8" rx="1.5"/>
+                                                </svg>
+                                                Default
+                                            </button>
+                                            <button class="preset-btn" data-preset="minimal">
+                                                <svg width="16" height="16" viewBox="0 0 21 21" class="mr-2">
+                                                    <rect x="0" y="0" width="3" height="3" fill="#000"/>
+                                                    <rect x="4" y="0" width="3" height="3" fill="#000"/>
+                                                    <rect x="8" y="0" width="3" height="3" fill="#000"/>
+                                                    <rect x="12" y="0" width="3" height="3" fill="#000"/>
+                                                    <rect x="16" y="0" width="3" height="3" fill="#000"/>
+                                                    <rect x="0" y="4" width="3" height="3" fill="#000"/>
+                                                    <rect x="8" y="4" width="3" height="3" fill="#000"/>
+                                                    <rect x="16" y="4" width="3" height="3" fill="#000"/>
+                                                    <rect x="0" y="8" width="3" height="3" fill="#000"/>
+                                                    <rect x="4" y="8" width="3" height="3" fill="#000"/>
+                                                    <rect x="8" y="8" width="3" height="3" fill="#000"/>
+                                                    <rect x="12" y="8" width="3" height="3" fill="#000"/>
+                                                    <rect x="16" y="8" width="3" height="3" fill="#000"/>
+                                                    <rect x="0" y="12" width="3" height="3" fill="#000"/>
+                                                    <rect x="12" y="12" width="3" height="3" fill="#000"/>
+                                                    <rect x="16" y="12" width="3" height="3" fill="#000"/>
+                                                    <rect x="0" y="16" width="3" height="3" fill="#000"/>
+                                                    <rect x="4" y="16" width="3" height="3" fill="#000"/>
+                                                    <rect x="8" y="16" width="3" height="3" fill="#000"/>
+                                                    <rect x="12" y="16" width="3" height="3" fill="#000"/>
+                                                    <rect x="16" y="16" width="3" height="3" fill="#000"/>
+                                                </svg>
+                                                Minimal
+                                            </button>
+                                            <button class="preset-btn" data-preset="monochrome">
+                                                <svg width="16" height="16" viewBox="0 0 21 21" class="mr-2">
+                                                    <rect x="0" y="0" width="3" height="3" fill="#000"/>
+                                                    <rect x="4" y="0" width="3" height="3" fill="#000"/>
+                                                    <rect x="8" y="0" width="3" height="3" fill="#000"/>
+                                                    <rect x="12" y="0" width="3" height="3" fill="#000"/>
+                                                    <rect x="16" y="0" width="3" height="3" fill="#000"/>
+                                                    <rect x="0" y="4" width="3" height="3" fill="#000"/>
+                                                    <rect x="8" y="4" width="3" height="3" fill="#000"/>
+                                                    <rect x="16" y="4" width="3" height="3" fill="#000"/>
+                                                    <rect x="0" y="8" width="3" height="3" fill="#000"/>
+                                                    <rect x="4" y="8" width="3" height="3" fill="#000"/>
+                                                    <rect x="8" y="8" width="3" height="3" fill="#000"/>
+                                                    <rect x="12" y="8" width="3" height="3" fill="#000"/>
+                                                    <rect x="16" y="8" width="3" height="3" fill="#000"/>
+                                                    <rect x="0" y="12" width="3" height="3" fill="#000"/>
+                                                    <rect x="12" y="12" width="3" height="3" fill="#000"/>
+                                                    <rect x="16" y="12" width="3" height="3" fill="#000"/>
+                                                    <rect x="0" y="16" width="3" height="3" fill="#000"/>
+                                                    <rect x="4" y="16" width="3" height="3" fill="#000"/>
+                                                    <rect x="8" y="16" width="3" height="3" fill="#000"/>
+                                                    <rect x="12" y="16" width="3" height="3" fill="#000"/>
+                                                    <rect x="16" y="16" width="3" height="3" fill="#000"/>
+                                                </svg>
+                                                Monochrome
+                                            </button>
+                                            <button class="preset-btn" data-preset="colorful">
+                                                <svg width="16" height="16" viewBox="0 0 21 21" class="mr-2">
+                                                    <circle cx="1.5" cy="1.5" r="1.5" fill="#8b5cf6"/>
+                                                    <circle cx="5.5" cy="1.5" r="1.5" fill="#8b5cf6"/>
+                                                    <circle cx="9.5" cy="1.5" r="1.5" fill="#8b5cf6"/>
+                                                    <circle cx="13.5" cy="1.5" r="1.5" fill="#7c3aed"/>
+                                                    <circle cx="17.5" cy="1.5" r="1.5" fill="#7c3aed"/>
+                                                    <circle cx="1.5" cy="5.5" r="1.5" fill="#8b5cf6"/>
+                                                    <circle cx="9.5" cy="5.5" r="1.5" fill="#8b5cf6"/>
+                                                    <circle cx="17.5" cy="5.5" r="1.5" fill="#7c3aed"/>
+                                                    <circle cx="1.5" cy="9.5" r="1.5" fill="#8b5cf6"/>
+                                                    <circle cx="5.5" cy="9.5" r="1.5" fill="#8b5cf6"/>
+                                                    <circle cx="9.5" cy="9.5" r="1.5" fill="#8b5cf6"/>
+                                                    <circle cx="13.5" cy="9.5" r="1.5" fill="#8b5cf6"/>
+                                                    <circle cx="17.5" cy="9.5" r="1.5" fill="#7c3aed"/>
+                                                    <circle cx="1.5" cy="13.5" r="1.5" fill="#7c3aed"/>
+                                                    <circle cx="13.5" cy="13.5" r="1.5" fill="#8b5cf6"/>
+                                                    <circle cx="17.5" cy="13.5" r="1.5" fill="#7c3aed"/>
+                                                    <circle cx="1.5" cy="17.5" r="1.5" fill="#7c3aed"/>
+                                                    <circle cx="5.5" cy="17.5" r="1.5" fill="#8b5cf6"/>
+                                                    <circle cx="9.5" cy="17.5" r="1.5" fill="#8b5cf6"/>
+                                                    <circle cx="13.5" cy="17.5" r="1.5" fill="#8b5cf6"/>
+                                                    <circle cx="17.5" cy="17.5" r="1.5" fill="#7c3aed"/>
+                                                </svg>
+                                                Colorful
+                                            </button>
+                                            <button class="preset-btn" data-preset="nature">
+                                                <svg width="16" height="16" viewBox="0 0 21 21" class="mr-2">
+                                                    <rect x="0" y="0" width="3" height="3" fill="#059669" rx="0.5"/>
+                                                    <rect x="4" y="0" width="3" height="3" fill="#059669" rx="0.5"/>
+                                                    <rect x="8" y="0" width="3" height="3" fill="#059669" rx="0.5"/>
+                                                    <rect x="12" y="0" width="3" height="3" fill="#047857" rx="1.5"/>
+                                                    <rect x="16" y="0" width="3" height="3" fill="#047857" rx="1.5"/>
+                                                    <rect x="0" y="4" width="3" height="3" fill="#059669" rx="0.5"/>
+                                                    <rect x="8" y="4" width="3" height="3" fill="#059669" rx="0.5"/>
+                                                    <rect x="16" y="4" width="3" height="3" fill="#047857" rx="1.5"/>
+                                                    <rect x="0" y="8" width="3" height="3" fill="#059669" rx="0.5"/>
+                                                    <rect x="4" y="8" width="3" height="3" fill="#059669" rx="0.5"/>
+                                                    <rect x="8" y="8" width="3" height="3" fill="#059669" rx="0.5"/>
+                                                    <rect x="12" y="8" width="3" height="3" fill="#059669" rx="0.5"/>
+                                                    <rect x="16" y="8" width="3" height="3" fill="#047857" rx="1.5"/>
+                                                    <rect x="0" y="12" width="3" height="3" fill="#047857" rx="1.5"/>
+                                                    <rect x="12" y="12" width="3" height="3" fill="#059669" rx="0.5"/>
+                                                    <rect x="16" y="12" width="3" height="3" fill="#047857" rx="1.5"/>
+                                                    <rect x="0" y="16" width="3" height="3" fill="#047857" rx="1.5"/>
+                                                    <rect x="4" y="16" width="3" height="3" fill="#059669" rx="0.5"/>
+                                                    <rect x="8" y="16" width="3" height="3" fill="#059669" rx="0.5"/>
+                                                    <rect x="12" y="16" width="3" height="3" fill="#059669" rx="0.5"/>
+                                                    <rect x="16" y="16" width="3" height="3" fill="#047857" rx="1.5"/>
+                                                </svg>
+                                                Nature
+                                            </button>
+                                            <button class="preset-btn" data-preset="sunset">
+                                                <svg width="16" height="16" viewBox="0 0 21 21" class="mr-2">
+                                                    <rect x="0" y="0" width="3" height="3" fill="#ea580c" rx="1"/>
+                                                    <rect x="4" y="0" width="3" height="3" fill="#ea580c" rx="1"/>
+                                                    <rect x="8" y="0" width="3" height="3" fill="#ea580c" rx="1"/>
+                                                    <rect x="12" y="0" width="3" height="3" fill="#c2410c" rx="1.5"/>
+                                                    <rect x="16" y="0" width="3" height="3" fill="#c2410c" rx="1.5"/>
+                                                    <rect x="0" y="4" width="3" height="3" fill="#ea580c" rx="1"/>
+                                                    <rect x="8" y="4" width="3" height="3" fill="#ea580c" rx="1"/>
+                                                    <rect x="16" y="4" width="3" height="3" fill="#c2410c" rx="1.5"/>
+                                                    <rect x="0" y="8" width="3" height="3" fill="#ea580c" rx="1"/>
+                                                    <rect x="4" y="8" width="3" height="3" fill="#ea580c" rx="1"/>
+                                                    <rect x="8" y="8" width="3" height="3" fill="#ea580c" rx="1"/>
+                                                    <rect x="12" y="8" width="3" height="3" fill="#ea580c" rx="1"/>
+                                                    <rect x="16" y="8" width="3" height="3" fill="#c2410c" rx="1.5"/>
+                                                    <rect x="0" y="12" width="3" height="3" fill="#c2410c" rx="1.5"/>
+                                                    <rect x="12" y="12" width="3" height="3" fill="#ea580c" rx="1"/>
+                                                    <rect x="16" y="12" width="3" height="3" fill="#c2410c" rx="1.5"/>
+                                                    <rect x="0" y="16" width="3" height="3" fill="#c2410c" rx="1.5"/>
+                                                    <rect x="4" y="16" width="3" height="3" fill="#ea580c" rx="1"/>
+                                                    <rect x="8" y="16" width="3" height="3" fill="#ea580c" rx="1"/>
+                                                    <rect x="12" y="16" width="3" height="3" fill="#ea580c" rx="1"/>
+                                                    <rect x="16" y="16" width="3" height="3" fill="#c2410c" rx="1.5"/>
+                                                </svg>
+                                                Sunset
+                                            </button>
+                                            <button class="preset-btn" data-preset="ocean">
+                                                <svg width="16" height="16" viewBox="0 0 21 21" class="mr-2">
+                                                    <rect x="0" y="0" width="3" height="3" fill="#0284c7" rx="1.5"/>
+                                                    <rect x="4" y="0" width="3" height="3" fill="#0284c7" rx="1.5"/>
+                                                    <rect x="8" y="0" width="3" height="3" fill="#0284c7" rx="1.5"/>
+                                                    <circle cx="13.5" cy="1.5" r="1.5" fill="#0369a1"/>
+                                                    <circle cx="17.5" cy="1.5" r="1.5" fill="#0369a1"/>
+                                                    <rect x="0" y="4" width="3" height="3" fill="#0284c7" rx="1.5"/>
+                                                    <rect x="8" y="4" width="3" height="3" fill="#0284c7" rx="1.5"/>
+                                                    <circle cx="17.5" cy="5.5" r="1.5" fill="#0369a1"/>
+                                                    <rect x="0" y="8" width="3" height="3" fill="#0284c7" rx="1.5"/>
+                                                    <rect x="4" y="8" width="3" height="3" fill="#0284c7" rx="1.5"/>
+                                                    <rect x="8" y="8" width="3" height="3" fill="#0284c7" rx="1.5"/>
+                                                    <rect x="12" y="8" width="3" height="3" fill="#0284c7" rx="1.5"/>
+                                                    <circle cx="17.5" cy="9.5" r="1.5" fill="#0369a1"/>
+                                                    <circle cx="1.5" cy="13.5" r="1.5" fill="#0369a1"/>
+                                                    <rect x="12" y="12" width="3" height="3" fill="#0284c7" rx="1.5"/>
+                                                    <circle cx="17.5" cy="13.5" r="1.5" fill="#0369a1"/>
+                                                    <circle cx="1.5" cy="17.5" r="1.5" fill="#0369a1"/>
+                                                    <rect x="4" y="16" width="3" height="3" fill="#0284c7" rx="1.5"/>
+                                                    <rect x="8" y="16" width="3" height="3" fill="#0284c7" rx="1.5"/>
+                                                    <rect x="12" y="16" width="3" height="3" fill="#0284c7" rx="1.5"/>
+                                                    <circle cx="17.5" cy="17.5" r="1.5" fill="#0369a1"/>
+                                                </svg>
+                                                Ocean
+                                            </button>
+                                            <button class="preset-btn" data-preset="Facebook">
+                                                <svg width="16" height="16" viewBox="0 0 21 21" class="mr-2">
+                                                    <rect x="0" y="0" width="3" height="3" fill="#000" rx="1.5"/>
+                                                    <rect x="4" y="0" width="3" height="3" fill="#000" rx="1.5"/>
+                                                    <rect x="8" y="0" width="3" height="3" fill="#000" rx="1.5"/>
+                                                    <rect x="12" y="0" width="3" height="3" fill="#2563eb" rx="1.5"/>
+                                                    <rect x="16" y="0" width="3" height="3" fill="#2563eb" rx="1.5"/>
+                                                    <rect x="0" y="4" width="3" height="3" fill="#000" rx="1.5"/>
+                                                    <rect x="8" y="4" width="3" height="3" fill="#000" rx="1.5"/>
+                                                    <rect x="16" y="4" width="3" height="3" fill="#2563eb" rx="1.5"/>
+                                                    <rect x="0" y="8" width="3" height="3" fill="#000" rx="1.5"/>
+                                                    <rect x="4" y="8" width="3" height="3" fill="#000" rx="1.5"/>
+                                                    <rect x="8" y="8" width="3" height="3" fill="#000" rx="1.5"/>
+                                                    <rect x="12" y="8" width="3" height="3" fill="#000" rx="1.5"/>
+                                                    <rect x="16" y="8" width="3" height="3" fill="#2563eb" rx="1.5"/>
+                                                    <rect x="0" y="12" width="3" height="3" fill="#2563eb" rx="1.5"/>
+                                                    <circle cx="13.5" cy="13.5" r="1.5" fill="#2563eb"/>
+                                                    <rect x="16" y="12" width="3" height="3" fill="#2563eb" rx="1.5"/>
+                                                    <rect x="0" y="16" width="3" height="3" fill="#2563eb" rx="1.5"/>
+                                                    <rect x="4" y="16" width="3" height="3" fill="#000" rx="1.5"/>
+                                                    <rect x="8" y="16" width="3" height="3" fill="#000" rx="1.5"/>
+                                                    <rect x="12" y="16" width="3" height="3" fill="#000" rx="1.5"/>
+                                                    <rect x="16" y="16" width="3" height="3" fill="#2563eb" rx="1.5"/>
+                                                    <path d="M 9.5 9.5 L 11.5 9.5 L 11.5 7.5 L 13.5 9.5 L 11.5 11.5 L 11.5 9.5 Z" fill="#2563eb"/>
+                                                </svg>
+                                                Facebook
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Design Section -->
+                                <div id="design-main" class="main-tab-pane hidden space-y-6">
+                                    <!-- Color Options -->
+                                    <div class="settings-card">
+                                        <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                                            <i class="fas fa-palette text-purple-600 mr-2"></i>
+                                            Color Options
+                                        </h4>
+
+                                        <!-- Dots Color Section -->
+                                        <div class="mb-6">
+                                            <div class="flex items-center justify-between mb-3">
+                                                <label class="text-sm font-semibold text-gray-700">Dots Color:</label>
+                                                <label class="flex items-center space-x-2">
+                                                    <span class="text-xs text-gray-600">Gradient</span>
+                                                    <input type="checkbox" id="dots-gradient-toggle" class="w-4 h-4 text-blue-600 rounded">
+                                                </label>
+                                            </div>
+                                            <div id="dots-solid-color" class="flex justify-center">
+                                                <input type="color" id="dots-color" value="#2563eb" class="color-picker">
+                                            </div>
+                                            <div id="dots-gradient-colors" class="hidden flex justify-center space-x-4">
+                                                <div class="flex flex-col items-center">
+                                                    <span class="text-xs text-gray-600 mb-1">Start</span>
+                                                    <input type="color" id="dots-gradient-start" value="#2563eb" class="color-picker">
+                                                </div>
+                                                <div class="flex flex-col items-center">
+                                                    <span class="text-xs text-gray-600 mb-1">End</span>
+                                                    <input type="color" id="dots-gradient-end" value="#7c3aed" class="color-picker">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Background Color Section -->
+                                        <div class="mb-6">
+                                            <div class="flex items-center justify-between mb-3">
+                                                <label class="text-sm font-semibold text-gray-700">Background Color:</label>
+                                                <label class="flex items-center space-x-2">
+                                                    <span class="text-xs text-gray-600">Gradient</span>
+                                                    <input type="checkbox" id="bg-gradient-toggle" class="w-4 h-4 text-blue-600 rounded">
+                                                </label>
+                                            </div>
+                                            <div id="bg-solid-color" class="flex justify-center">
+                                                <input type="color" id="bg-color" value="#ffffff" class="color-picker">
+                                            </div>
+                                            <div id="bg-gradient-colors" class="hidden flex justify-center space-x-4">
+                                                <div class="flex flex-col items-center">
+                                                    <span class="text-xs text-gray-600 mb-1">Start</span>
+                                                    <input type="color" id="bg-gradient-start" value="#f8fafc" class="color-picker">
+                                                </div>
+                                                <div class="flex flex-col items-center">
+                                                    <span class="text-xs text-gray-600 mb-1">End</span>
+                                                    <input type="color" id="bg-gradient-end" value="#e2e8f0" class="color-picker">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Corner Color Section -->
+                                        <div class="mb-4">
+                                            <div class="flex items-center justify-between mb-3">
+                                                <label class="text-sm font-semibold text-gray-700">Corner Color:</label>
+                                                <label class="flex items-center space-x-2">
+                                                    <span class="text-xs text-gray-600">Gradient</span>
+                                                    <input type="checkbox" id="corner-gradient-toggle" class="w-4 h-4 text-blue-600 rounded">
+                                                </label>
+                                            </div>
+                                            <div id="corner-solid-color" class="flex justify-center">
+                                                <input type="color" id="corner-color" value="#1d4ed8" class="color-picker">
+                                            </div>
+                                            <div id="corner-gradient-colors" class="hidden flex justify-center space-x-4">
+                                                <div class="flex flex-col items-center">
+                                                    <span class="text-xs text-gray-600 mb-1">Start</span>
+                                                    <input type="color" id="corner-gradient-start" value="#1d4ed8" class="color-picker">
+                                                </div>
+                                                <div class="flex flex-col items-center">
+                                                    <span class="text-xs text-gray-600 mb-1">End</span>
+                                                    <input type="color" id="corner-gradient-end" value="#7c3aed" class="color-picker">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Style Options -->
+                                    <div class="settings-card">
+                                        <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                                            <i class="fas fa-shapes text-blue-600 mr-2"></i>
+                                            Shape & Pattern
+                                        </h4>
+                                        <div class="space-y-4">
+                                            <!-- Main Dots Style -->
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Dots Style:</label>
+                                                    <select id="dots-style" class="input-field w-full">
+                                                        <option value="rounded" selected>Rounded</option>
+                                                        <option value="square">Square</option>
+                                                        <option value="dots">Dots</option>
+                                                        <option value="classy">Classy</option>
+                                                        <option value="classy-rounded">Classy Rounded</option>
+                                                        <option value="extra-rounded">Extra Rounded</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Dot Shape:</label>
+                                                    <select id="dot-shape" class="input-field w-full">
+                                                        <option value="square" selected>Square</option>
+                                                        <option value="circle">Circle</option>
+                                                        <option value="diamond">Diamond</option>
+                                                        <option value="star">Star</option>
+                                                        <option value="heart">Heart</option>
+                                                        <option value="hexagon">Hexagon</option>
+                                                        <option value="triangle">Triangle</option>
+                                                        <option value="cross">Cross</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <!-- Corner Styles -->
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Corner Square Style:</label>
+                                                    <select id="corner-style" class="input-field w-full">
+                                                        <option value="extra-rounded" selected>Extra Rounded</option>
+                                                        <option value="square">Square</option>
+                                                        <option value="dot">Dot</option>
+                                                        <option value="classy">Classy</option>
+                                                        <option value="classy-rounded">Classy Rounded</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Corner Dot Style:</label>
+                                                    <select id="corner-dot-style" class="input-field w-full">
+                                                        <option value="square" selected>Square</option>
+                                                        <option value="dot">Dot</option>
+                                                        <option value="plus">Plus</option>
+                                                        <option value="circle">Circle</option>
+                                                        <option value="diamond">Diamond</option>
+                                                        <option value="star">Star</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <!-- Pattern Options -->
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Dots Pattern:</label>
+                                                    <select id="dots-pattern" class="input-field w-full">
+                                                        <option value="solid" selected>Solid</option>
+                                                        <option value="gradient-radial">Radial Gradient</option>
+                                                        <option value="gradient-linear">Linear Gradient</option>
+                                                        <option value="mosaic">Mosaic</option>
+                                                        <option value="striped">Striped</option>
+                                                        <option value="checkered">Checkered</option>
+                                                        <option value="dotted">Dotted</option>
+                                                        <option value="wavy">Wavy</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Background Pattern:</label>
+                                                    <select id="background-pattern" class="input-field w-full">
+                                                        <option value="solid" selected>Solid</option>
+                                                        <option value="gradient">Gradient</option>
+                                                        <option value="dots">Dots</option>
+                                                        <option value="lines">Lines</option>
+                                                        <option value="grid">Grid</option>
+                                                        <option value="waves">Waves</option>
+                                                        <option value="diagonal">Diagonal</option>
+                                                        <option value="honeycomb">Honeycomb</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <!-- Advanced Shape Options -->
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Dot Size Variation:</label>
+                                                    <select id="dot-size-variation" class="input-field w-full">
+                                                        <option value="uniform" selected>Uniform</option>
+                                                        <option value="random">Random</option>
+                                                        <option value="gradient-center">Gradient from Center</option>
+                                                        <option value="gradient-edge">Gradient from Edge</option>
+                                                        <option value="wave">Wave Pattern</option>
+                                                        <option value="spiral">Spiral</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Corner Decoration:</label>
+                                                    <select id="corner-decoration" class="input-field w-full">
+                                                        <option value="none" selected>None</option>
+                                                        <option value="frame">Frame</option>
+                                                        <option value="glow">Glow Effect</option>
+                                                        <option value="shadow">Drop Shadow</option>
+                                                        <option value="outline">Outline</option>
+                                                        <option value="double-border">Double Border</option>
+                                                        <option value="beveled">Beveled</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <!-- Rotation and Alignment -->
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Dot Rotation:</label>
+                                                    <select id="dot-rotation" class="input-field w-full">
+                                                        <option value="0" selected>0° (Normal)</option>
+                                                        <option value="15">15°</option>
+                                                        <option value="30">30°</option>
+                                                        <option value="45">45°</option>
+                                                        <option value="60">60°</option>
+                                                        <option value="90">90°</option>
+                                                        <option value="random">Random</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Pattern Alignment:</label>
+                                                    <select id="pattern-alignment" class="input-field w-full">
+                                                        <option value="center" selected>Center</option>
+                                                        <option value="top-left">Top Left</option>
+                                                        <option value="top-right">Top Right</option>
+                                                        <option value="bottom-left">Bottom Left</option>
+                                                        <option value="bottom-right">Bottom Right</option>
+                                                        <option value="scattered">Scattered</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <!-- Texture and Finish -->
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Dot Texture:</label>
+                                                    <select id="dot-texture" class="input-field w-full">
+                                                        <option value="smooth" selected>Smooth</option>
+                                                        <option value="rough">Rough</option>
+                                                        <option value="metallic">Metallic</option>
+                                                        <option value="matte">Matte</option>
+                                                        <option value="glossy">Glossy</option>
+                                                        <option value="frosted">Frosted</option>
+                                                        <option value="neon">Neon</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Edge Style:</label>
+                                                    <select id="edge-style" class="input-field w-full">
+                                                        <option value="sharp" selected>Sharp</option>
+                                                        <option value="soft">Soft</option>
+                                                        <option value="feathered">Feathered</option>
+                                                        <option value="outlined">Outlined</option>
+                                                        <option value="double-outlined">Double Outlined</option>
+                                                        <option value="glowing">Glowing</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Visual Effects -->
+                                    <div class="settings-card">
+                                        <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                                            <i class="fas fa-magic text-purple-600 mr-2"></i>
+                                            Visual Effects
+                                        </h4>
+                                        <div class="space-y-4">
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Shadow Effect:</label>
+                                                    <select id="shadow-effect" class="input-field w-full">
+                                                        <option value="none" selected>None</option>
+                                                        <option value="soft">Soft Shadow</option>
+                                                        <option value="hard">Hard Shadow</option>
+                                                        <option value="glow">Glow Effect</option>
+                                                        <option value="neon">Neon Glow</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Border Style:</label>
+                                                    <select id="border-style" class="input-field w-full">
+                                                        <option value="none" selected>None</option>
+                                                        <option value="solid">Solid Border</option>
+                                                        <option value="dashed">Dashed</option>
+                                                        <option value="rounded">Rounded Frame</option>
+                                                        <option value="circular">Circular Frame</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Animation:</label>
+                                                    <select id="animation-effect" class="input-field w-full">
+                                                        <option value="none" selected>None</option>
+                                                        <option value="pulse">Pulse</option>
+                                                        <option value="rotate">Rotate</option>
+                                                        <option value="fade">Fade In</option>
+                                                        <option value="scale">Scale</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">3D Effect:</label>
+                                                    <select id="effect-3d" class="input-field w-full">
+                                                        <option value="none" selected>None</option>
+                                                        <option value="emboss">Emboss</option>
+                                                        <option value="inset">Inset</option>
+                                                        <option value="raised">Raised</option>
+                                                        <option value="perspective">Perspective</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Logo & Branding -->
+                                    <div class="settings-card">
+                                        <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                                            <i class="fas fa-image text-green-600 mr-2"></i>
+                                            Logo & Branding
+                                        </h4>
+                                        <div class="space-y-4">
+                                            <!-- Logo Type Selection -->
+                                            <div>
+                                                <label class="block text-sm font-semibold text-gray-700 mb-2">Logo Type:</label>
+                                                <div class="flex space-x-2 mb-3">
+                                                    <button id="logo-type-none" class="preset-btn active" data-logo-type="none">
+                                                        <i class="fas fa-ban mr-1"></i> None
+                                                    </button>
+                                                    <button id="logo-type-upload" class="preset-btn" data-logo-type="upload">
+                                                        <i class="fas fa-upload mr-1"></i> Upload
+                                                    </button>
+                                                    <button id="logo-type-social" class="preset-btn" data-logo-type="social">
+                                                        <i class="fas fa-share-alt mr-1"></i> Social Media
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <!-- Upload Logo Section -->
+                                            <div id="logo-upload-section" class="hidden">
+                                                <label class="block text-sm font-semibold text-gray-700 mb-2">Logo Upload:</label>
+                                                <input type="file" id="logo-upload" accept="image/*" class="input-field w-full">
+                                                <p class="text-xs text-gray-500 mt-1">Upload a logo to place in the center of your QR code</p>
+                                            </div>
+
+                                            <!-- Social Media Icons Section -->
+                                            <div id="social-icons-section" class="hidden">
+                                                <label class="block text-sm font-semibold text-gray-700 mb-2">Choose Social Media Icon:</label>
+                                                <div class="grid grid-cols-4 gap-3">
+                                                    <button class="social-icon-btn" data-icon="facebook" title="Facebook">
+                                                        <i class="fab fa-facebook-f text-2xl text-blue-600"></i>
+                                                    </button>
+                                                    <button class="social-icon-btn" data-icon="instagram" title="Instagram">
+                                                        <i class="fab fa-instagram text-2xl text-pink-600"></i>
+                                                    </button>
+                                                    <button class="social-icon-btn" data-icon="twitter" title="Twitter/X">
+                                                        <i class="fab fa-x-twitter text-2xl text-gray-800"></i>
+                                                    </button>
+                                                    <button class="social-icon-btn" data-icon="youtube" title="YouTube">
+                                                        <i class="fab fa-youtube text-2xl text-red-600"></i>
+                                                    </button>
+                                                    <button class="social-icon-btn" data-icon="linkedin" title="LinkedIn">
+                                                        <i class="fab fa-linkedin text-2xl text-blue-700"></i>
+                                                    </button>
+                                                    <button class="social-icon-btn" data-icon="tiktok" title="TikTok">
+                                                        <i class="fab fa-tiktok text-2xl text-gray-900"></i>
+                                                    </button>
+                                                    <button class="social-icon-btn" data-icon="whatsapp" title="WhatsApp">
+                                                        <i class="fab fa-whatsapp text-2xl text-green-600"></i>
+                                                    </button>
+                                                    <button class="social-icon-btn" data-icon="telegram" title="Telegram">
+                                                        <i class="fab fa-telegram text-2xl text-blue-500"></i>
+                                                    </button>
+                                                    <button class="social-icon-btn" data-icon="discord" title="Discord">
+                                                        <i class="fab fa-discord text-2xl text-indigo-600"></i>
+                                                    </button>
+                                                    <button class="social-icon-btn" data-icon="snapchat" title="Snapchat">
+                                                        <i class="fab fa-snapchat text-2xl text-yellow-500"></i>
+                                                    </button>
+                                                    <button class="social-icon-btn" data-icon="reddit" title="Reddit">
+                                                        <i class="fab fa-reddit text-2xl text-orange-600"></i>
+                                                    </button>
+                                                    <button class="social-icon-btn" data-icon="pinterest" title="Pinterest">
+                                                        <i class="fab fa-pinterest text-2xl text-red-600"></i>
+                                                    </button>
+                                                </div>
+                                                <div class="mt-3">
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Icon Style:</label>
+                                                    <select id="social-icon-style" class="input-field w-full">
+                                                        <option value="solid">Solid Color</option>
+                                                        <option value="outlined">Outlined</option>
+                                                        <option value="rounded">Rounded Background</option>
+                                                        <option value="square">Square Background</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mt-3">
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Icon Color:</label>
+                                                    <div class="flex justify-center">
+                                                        <input type="color" id="social-icon-color" value="#667eea" class="color-picker">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Logo Size:</label>
+                                                    <select id="logo-size" class="input-field w-full">
+                                                        <option value="0.2">Small (20%)</option>
+                                                        <option value="0.3">Medium (30%)</option>
+                                                        <option value="0.4" selected>Large (40%)</option>
+                                                        <option value="0.5">Extra Large (50%)</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Logo Background:</label>
+                                                    <select id="logo-background" class="input-field w-full">
+                                                        <option value="transparent" selected>Transparent</option>
+                                                        <option value="white">White</option>
+                                                        <option value="black">Black</option>
+                                                        <option value="Facebook">Facebook Color</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div id="logo-bg-color-container" class="hidden">
+                                                <label class="block text-sm font-semibold text-gray-700 mb-2">Logo Background Color:</label>
+                                                <div class="flex justify-center">
+                                                    <input type="color" id="logo-bg-color" value="#ffffff" class="color-picker">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Layout & Spacing -->
+                                    <div class="settings-card">
+                                        <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                                            <i class="fas fa-ruler text-indigo-600 mr-2"></i>
+                                            Layout & Spacing
+                                        </h4>
+                                        <div class="space-y-4">
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Margin:</label>
+                                                    <select id="qr-margin" class="input-field w-full">
+                                                        <option value="0">No Margin</option>
+                                                        <option value="5" selected>Small</option>
+                                                        <option value="10">Medium</option>
+                                                        <option value="20">Large</option>
+                                                        <option value="30">Extra Large</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Padding:</label>
+                                                    <select id="qr-padding" class="input-field w-full">
+                                                        <option value="0" selected>None</option>
+                                                        <option value="10">Small</option>
+                                                        <option value="20">Medium</option>
+                                                        <option value="30">Large</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Border Radius:</label>
+                                                    <select id="border-radius" class="input-field w-full">
+                                                        <option value="0" selected>Sharp</option>
+                                                        <option value="10">Slightly Rounded</option>
+                                                        <option value="20">Rounded</option>
+                                                        <option value="50">Very Rounded</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Aspect Ratio:</label>
+                                                    <select id="aspect-ratio" class="input-field w-full">
+                                                        <option value="1:1" selected>Square (1:1)</option>
+                                                        <option value="4:3">Standard (4:3)</option>
+                                                        <option value="16:9">Widescreen (16:9)</option>
+                                                        <option value="3:4">Portrait (3:4)</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Settings -->
+                        <div class="settings-card">
+                            <h3 class="settings-title">
+                                <i class="fas fa-cog"></i>
+                                Quick Settings
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Size:</label>
+                                    <select id="qr-size" class="input-field w-full">
+                                        <option value="300">300x300 px</option>
+                                        <option value="500" selected>500x500 px</option>
+                                        <option value="800">800x800 px</option>
+                                        <option value="1000">1000x1000 px</option>
+                                        <option value="1500">1500x1500 px</option>
+                                        <option value="2000">2000x2000 px</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Error Correction:</label>
+                                    <select id="error-correction" class="input-field w-full">
+                                        <option value="L">Low (~7%)</option>
+                                        <option value="M">Medium (~15%)</option>
+                                        <option value="Q">Quartile (~25%)</option>
+                                        <option value="H" selected>High (~30%)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+
+                    <!-- Right Panel - Preview & Download -->
+                    <div class="lg:col-span-1">
+                        <div class="qr-preview sticky top-8">
+                            <h2 class="text-xl font-bold text-gray-800 mb-6 text-center">
+                                <i class="fas fa-eye text-green-600 mr-2"></i>
+                                Preview
+                            </h2>
+
+                            <!-- QR Code Preview -->
+                            <div class="text-center mb-6">
+                                <div id="qr-container-display"></div>
+                            </div>
+
+                            <!-- Download Buttons -->
+                            <div class="space-y-3 mb-6">
+                                <button id="download-png" class="download-btn w-full">
+                                    <i class="fas fa-download mr-2"></i>
+                                    Download PNG
+                                </button>
+                                <button id="download-svg" class="download-btn secondary w-full">
+                                    <i class="fas fa-download mr-2"></i>
+                                    Download SVG
+                                </button>
+                                <button id="download-pdf" class="download-btn w-full" style="background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);">
+                                    <i class="fas fa-file-pdf mr-2"></i>
+                                    Download PDF
+                                </button>
+                                <button id="download-all" class="download-btn w-full" style="background: linear-gradient(135deg, #805ad5 0%, #553c9a 100%);">
+                                    <i class="fas fa-archive mr-2"></i>
+                                    Download All Formats
+                                </button>
+                            </div>
+
+                            <!-- QR Info -->
+                            <div class="bg-gray-50 rounded-xl p-4">
+                                <h4 class="font-semibold text-gray-800 mb-3">QR Code Info</h4>
+                                <div class="text-sm text-gray-600 space-y-2">
+                                    <div class="flex justify-between">
+                                        <span>Type:</span>
+                                        <span id="qr-type" class="font-medium">Text</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Size:</span>
+                                        <span id="qr-size-info" class="font-medium">500x500 px</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Data Length:</span>
+                                        <span id="qr-data-length" class="font-medium">13 chars</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Error Correction:</span>
+                                        <span id="qr-error-info" class="font-medium">High</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Estimated Scan Distance:</span>
+                                        <span id="qr-scan-distance" class="font-medium">1.5m</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Created:</span>
+                                        <span id="qr-timestamp" class="font-medium">Now</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class QRCodeGenerator {
+            constructor() {
+                this.qrCode = null;
+                this.currentData = 'QR';
+                this.currentType = 'text';
+                this.previewSize = 220;
+                this.logoImage = null;
+                this.selectedSocialIcon = null;
+                this.logoType = 'none';
+                this.createdTime = new Date();
+
+                this.presets = {
+                    default: {
+                        dots: '#2563eb',
+                        background: '#ffffff',
+                        corners: '#1d4ed8',
+                        dotsStyle: 'rounded',
+                        cornerStyle: 'extra-rounded'
+                    },
+                    minimal: {
+                        dots: '#000000',
+                        background: '#ffffff',
+                        corners: '#000000',
+                        dotsStyle: 'square',
+                        cornerStyle: 'square'
+                    },
+                    monochrome: {
+                        dots: '#000000',
+                        background: '#ffffff',
+                        corners: '#000000',
+                        dotsStyle: 'square',
+                        cornerStyle: 'square'
+                    },
+                    colorful: {
+                        dots: '#8b5cf6',
+                        background: '#fef7ff',
+                        corners: '#7c3aed',
+                        dotsStyle: 'dots',
+                        cornerStyle: 'dot'
+                    },
+                    nature: {
+                        dots: '#059669',
+                        background: '#f0fdf4',
+                        corners: '#047857',
+                        dotsStyle: 'rounded',
+                        cornerStyle: 'extra-rounded'
+                    },
+                    sunset: {
+                        dots: '#ea580c',
+                        background: '#fff7ed',
+                        corners: '#c2410c',
+                        dotsStyle: 'classy-rounded',
+                        cornerStyle: 'extra-rounded'
+                    },
+                    ocean: {
+                        dots: '#0284c7',
+                        background: '#f0f9ff',
+                        corners: '#0369a1',
+                        dotsStyle: 'extra-rounded',
+                        cornerStyle: 'dot'
+                    },
+                    Facebook: {
+                        dots: '#000000',
+                        background: '#ffffff',
+                        corners: '#2563eb',
+                        cornerDot: '#2563eb',
+                        dotsStyle: 'extra-rounded',
+                        cornerStyle: 'extra-rounded',
+                        cornerDotStyle: 'dot',
+                        socialIcon: 'facebook'
+                    }
+                };
+
+                this.initializeEventListeners();
+                this.applyPreset('minimal');
+                this.generateQRCode();
+            }
+
+            initializeEventListeners() {
+                // Main tab switching
+                document.querySelectorAll('[data-main-tab]').forEach(btn => {
+                    btn.addEventListener('click', () => this.switchMainTab(btn.dataset.mainTab));
+                });
+
+                // Sub-tab switching (data input tabs)
+                document.querySelectorAll('[data-tab]').forEach(btn => {
+                    btn.addEventListener('click', () => this.switchTab(btn.dataset.tab));
+                });
+
+                // Navigation arrows
+                document.getElementById('scroll-left').addEventListener('click', () => this.scrollTabs('left'));
+                document.getElementById('scroll-right').addEventListener('click', () => this.scrollTabs('right'));
+
+                // Update arrow visibility on scroll
+                const tabsContainer = document.getElementById('tabs-container');
+                tabsContainer.addEventListener('scroll', () => this.updateArrowVisibility());
+
+                // Initial arrow visibility check
+                setTimeout(() => this.updateArrowVisibility(), 100);
+
+                // Input listeners
+                document.getElementById('text-input').addEventListener('input', () => this.updateQRData());
+                document.getElementById('url-input').addEventListener('input', () => this.updateQRData());
+
+                ['wifi-ssid', 'wifi-password', 'wifi-security'].forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.addEventListener('change', () => this.updateQRData());
+                    }
+                });
+
+                ['contact-fname', 'contact-lname', 'contact-phone', 'contact-email'].forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.addEventListener('input', () => this.updateQRData());
+                    }
+                });
+
+                ['email-to', 'email-subject', 'email-body'].forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.addEventListener('input', () => this.updateQRData());
+                    }
+                });
+
+                // SMS inputs
+                ['sms-phone', 'sms-message'].forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.addEventListener('input', () => this.updateQRData());
+                    }
+                });
+
+                // WhatsApp inputs
+                ['whatsapp-phone', 'whatsapp-message'].forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.addEventListener('input', () => this.updateQRData());
+                    }
+                });
+
+                // Social media inputs
+                ['instagram-username', 'facebook-profile', 'twitter-username', 'youtube-link', 'tiktok-username', 'applink-url'].forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.addEventListener('input', () => this.updateQRData());
+                    }
+                });
+
+                // Settings
+                document.getElementById('qr-size').addEventListener('change', () => this.generateQRCode());
+                document.getElementById('error-correction').addEventListener('change', () => this.generateQRCode());
+
+                // Advanced Facebookization elements
+                ['dots-color', 'bg-color', 'corner-color', 'dots-style', 'corner-style', 'qr-margin', 
+                 'dots-pattern', 'corner-pattern', 'shadow-effect', 'border-style', 'animation-effect', 
+                 'effect-3d', 'logo-size', 'logo-background', 'logo-bg-color', 'qr-padding', 
+                 'border-radius', 'aspect-ratio', 'dot-shape', 'corner-dot-style', 'background-pattern',
+                 'dot-size-variation', 'corner-decoration', 'dot-rotation', 'pattern-alignment',
+                 'dot-texture', 'edge-style'].forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.addEventListener('change', () => {
+                            if (id === 'logo-background') {
+                                this.toggleLogoBgColor();
+                            }
+                            this.generateQRCode();
+                        });
+                    }
+                });
+
+                // Gradient color elements
+                ['dots-gradient-start', 'dots-gradient-end', 'bg-gradient-start', 'bg-gradient-end', 'corner-gradient-start', 'corner-gradient-end'].forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.addEventListener('change', () => this.generateQRCode());
+                    }
+                });
+
+                // Gradient toggle elements
+                ['dots-gradient-toggle', 'bg-gradient-toggle', 'corner-gradient-toggle'].forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.addEventListener('change', () => this.toggleGradient(id));
+                    }
+                });
+
+                // Logo type selection
+                document.querySelectorAll('[data-logo-type]').forEach(btn => {
+                    btn.addEventListener('click', () => this.switchLogoType(btn.dataset.logoType));
+                });
+
+                // Logo upload
+                const logoUpload = document.getElementById('logo-upload');
+                if (logoUpload) {
+                    logoUpload.addEventListener('change', (e) => this.handleLogoUpload(e));
+                }
+
+                // Social media icons
+                document.querySelectorAll('.social-icon-btn').forEach(btn => {
+                    btn.addEventListener('click', () => this.selectSocialIcon(btn.dataset.icon));
+                });
+
+                // Social icon settings
+                ['social-icon-style', 'social-icon-color'].forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.addEventListener('change', () => this.generateSocialIcon());
+                    }
+                });
+
+                // Presets
+                document.querySelectorAll('.preset-btn').forEach(btn => {
+                    btn.addEventListener('click', () => this.applyPreset(btn.dataset.preset));
+                });
+
+                // Download buttons
+                document.getElementById('download-png').addEventListener('click', () => this.downloadQR('png'));
+                document.getElementById('download-svg').addEventListener('click', () => this.downloadQR('svg'));
+                document.getElementById('download-pdf').addEventListener('click', () => this.downloadQR('pdf'));
+                document.getElementById('download-all').addEventListener('click', () => this.downloadAllFormats());
+            }
+
+            switchMainTab(mainTabName) {
+                // Update main tab buttons
+                document.querySelectorAll('[data-main-tab]').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.querySelector(`[data-main-tab="${mainTabName}"]`).classList.add('active');
+
+                // Update main tab content
+                document.querySelectorAll('.main-tab-pane').forEach(pane => {
+                    pane.classList.add('hidden');
+                });
+                document.getElementById(`${mainTabName}-main`).classList.remove('hidden');
+
+                // Show/hide data input sub-tabs
+                const dataInputTabs = document.getElementById('data-input-tabs');
+                if (mainTabName === 'data-input') {
+                    dataInputTabs.style.display = 'block';
+                } else {
+                    dataInputTabs.style.display = 'none';
+                }
+            }
+
+            switchTab(tabName) {
+                // Update sub-tab buttons
+                document.querySelectorAll('[data-tab]').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+                // Update tab content
+                document.querySelectorAll('.tab-pane').forEach(pane => {
+                    pane.classList.add('hidden');
+                });
+                document.getElementById(`${tabName}-tab`).classList.remove('hidden');
+
+                this.currentType = tabName;
+                this.updateQRData();
+            }
+
+            updateQRData() {
+                switch(this.currentType) {
+                    case 'text':
+                        this.currentData = document.getElementById('text-input').value || 'QR';
+                        break;
+                    case 'url':
+                        this.currentData = document.getElementById('url-input').value || 'https://example.com';
+                        break;
+                    case 'wifi':
+                        const ssid = document.getElementById('wifi-ssid').value || 'MyWiFi';
+                        const password = document.getElementById('wifi-password').value || 'password';
+                        const security = document.getElementById('wifi-security').value || 'WPA';
+                        this.currentData = `WIFI:T:${security};S:${ssid};P:${password};H:false;;`;
+                        break;
+                    case 'contact':
+                        const fname = document.getElementById('contact-fname').value || 'John';
+                        const lname = document.getElementById('contact-lname').value || 'Doe';
+                        const phone = document.getElementById('contact-phone').value || '';
+                        const email = document.getElementById('contact-email').value || '';
+                        this.currentData = `BEGIN:VCARD\nVERSION:3.0\nFN:${fname} ${lname}\nN:${lname};${fname};;;\nTEL:${phone}\nEMAIL:${email}\nEND:VCARD`;
+                        break;
+                    case 'email':
+                        const to = document.getElementById('email-to').value || 'info@example.com';
+                        const subject = document.getElementById('email-subject').value || '';
+                        const body = document.getElementById('email-body').value || '';
+                        this.currentData = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                        break;
+                    case 'sms':
+                        const smsPhone = document.getElementById('sms-phone').value || '+1234567890';
+                        const smsMessage = document.getElementById('sms-message').value || '';
+                        this.currentData = `sms:${smsPhone}?body=${encodeURIComponent(smsMessage)}`;
+                        break;
+                    case 'whatsapp':
+                        const whatsappPhone = document.getElementById('whatsapp-phone').value || '+1234567890';
+                        const whatsappMessage = document.getElementById('whatsapp-message').value || '';
+                        this.currentData = `https://wa.me/${whatsappPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(whatsappMessage)}`;
+                        break;
+                    case 'instagram':
+                        const instagramUsername = document.getElementById('instagram-username').value || 'instagram';
+                        this.currentData = `https://instagram.com/${instagramUsername}`;
+                        break;
+                    case 'facebook':
+                        const facebookProfile = document.getElementById('facebook-profile').value || 'facebook';
+                        if (facebookProfile.includes('facebook.com')) {
+                            this.currentData = facebookProfile;
+                        } else {
+                            this.currentData = `https://facebook.com/${facebookProfile}`;
+                        }
+                        break;
+                    case 'twitter':
+                        const twitterUsername = document.getElementById('twitter-username').value || 'twitter';
+                        this.currentData = `https://twitter.com/${twitterUsername}`;
+                        break;
+                    case 'youtube':
+                        const youtubeLink = document.getElementById('youtube-link').value || 'youtube';
+                        if (youtubeLink.includes('youtube.com') || youtubeLink.includes('youtu.be')) {
+                            this.currentData = youtubeLink;
+                        } else if (youtubeLink.length === 11) {
+                            this.currentData = `https://youtube.com/watch?v=${youtubeLink}`;
+                        } else {
+                            this.currentData = `https://youtube.com/c/${youtubeLink}`;
+                        }
+                        break;
+                    case 'tiktok':
+                        const tiktokUsername = document.getElementById('tiktok-username').value || 'tiktok';
+                        this.currentData = `https://tiktok.com/@${tiktokUsername}`;
+                        break;
+                    case 'applink':
+                        this.currentData = document.getElementById('applink-url').value || 'https://apps.apple.com/';
+                        break;
+                }
+                this.generateQRCode();
+            }
+
+            switchLogoType(logoType) {
+                // Update logo type buttons
+                document.querySelectorAll('[data-logo-type]').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.querySelector(`[data-logo-type="${logoType}"]`).classList.add('active');
+
+                // Show/hide sections
+                document.getElementById('logo-upload-section').classList.toggle('hidden', logoType !== 'upload');
+                document.getElementById('social-icons-section').classList.toggle('hidden', logoType !== 'social');
+
+                this.logoType = logoType;
+
+                // Reset logo/icon based on type
+                if (logoType === 'none') {
+                    this.logoImage = null;
+                    this.selectedSocialIcon = null;
+                } else if (logoType === 'upload') {
+                    this.selectedSocialIcon = null;
+                } else if (logoType === 'social') {
+                    this.logoImage = null;
+                }
+
+                this.generateQRCode();
+            }
+
+            selectSocialIcon(iconName) {
+                // Update active social icon button
+                document.querySelectorAll('.social-icon-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.querySelector(`[data-icon="${iconName}"]`).classList.add('active');
+
+                this.selectedSocialIcon = iconName;
+                this.generateSocialIcon();
+            }
+
+            generateSocialIcon() {
+                if (!this.selectedSocialIcon) return;
+
+                const iconStyle = document.getElementById('social-icon-style').value;
+                const iconColor = document.getElementById('social-icon-color').value;
+
+                // Create SVG for the social icon
+                const svgSize = 200;
+                const iconMap = {
+                    facebook: 'M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z',
+                    instagram: 'M12.017 0C5.396 0 .029 5.367.029 11.987c0 6.62 5.367 11.987 11.988 11.987s11.987-5.367 11.987-11.987C24.014 5.367 18.648.001 12.017.001zM8.449 12.013c0-1.997 1.616-3.613 3.613-3.613s3.613 1.616 3.613 3.613-1.616 3.613-3.613 3.613-3.613-1.616-3.613-3.613zm7.009-4.187c.468 0 .847-.379.847-.847s-.379-.847-.847-.847-.847.379-.847.847.379.847.847.847zm2.963 1.519c-.139-.139-.365-.139-.504 0-.139.139-.139.365 0 .504.139.139.365.139.504 0 .139-.139.139-.365 0-.504zm-2.963 6.775c-2.757 0-4.987-2.23-4.987-4.987s2.23-4.987 4.987-4.987 4.987 2.23 4.987 4.987-2.23 4.987-4.987 4.987z',
+                    twitter: 'M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z',
+                    youtube: 'M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z',
+                    linkedin: 'M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z',
+                    tiktok: 'M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z',
+                    whatsapp: 'M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.465 3.085',
+                    telegram: 'M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.820 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z',
+                    discord: 'M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419-.0002 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1568 2.4189z',
+                    snapchat: 'M12.017 0C5.396 0 .029 5.367.029 11.987c0 6.62 5.367 11.987 11.988 11.987s11.987-5.367 11.987-11.987C24.014 5.367 18.648.001 12.017.001zM8.449 12.013c0-1.997 1.616-3.613 3.613-3.613s3.613 1.616 3.613 3.613-1.616 3.613-3.613 3.613-3.613-1.616-3.613-3.613zm7.009-4.187c.468 0 .847-.379.847-.847s-.379-.847-.847-.847-.847.379-.847.847.379.847.847.847zm2.963 1.519c-.139-.139-.365-.139-.504 0-.139.139-.139.365 0 .504.139.139.365.139.504 0 .139-.139.139-.365 0-.504zm-2.963 6.775c-2.757 0-4.987-2.23-4.987-4.987s2.23-4.987 4.987-4.987 4.987 2.23 4.987 4.987-2.23 4.987-4.987 4.987z',
+                    reddit: 'M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z',
+                    pinterest: 'M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.219-.359-1.219c0-1.142.662-1.995 1.488-1.995.219 0 .359.219.359.578 0 .359-.219 1.142-.359 1.781-.219.937.578 1.781 1.781 1.781 0 3.145-1.781 3.145-4.364 0-2.284-1.406-3.881-3.881-3.881-2.642 0-4.202 1.959-4.202 3.881 0 .797.219 1.322.578 1.781.063.062.125.156.09.281-.031.125-.125.5-.156.625-.031.125-.125.156-.281.094-1.016-.453-1.641-1.859-1.641-2.998 0-2.998 2.187-5.747 6.312-5.747 3.313 0 5.891 2.359 5.891 5.516 0 3.297-2.078 5.938-4.969 5.938-.969 0-1.883-.5-2.188-1.141 0 0-.484 1.859-.594 2.281-.219.844-.781 1.922-1.203 2.594.906.281 1.875.422 2.875.422 6.622 0 11.989-5.367 11.989-11.987C24.014 5.367 18.647.001 12.017.001z'
+                };
+
+                let svg = `<svg width="${svgSize}" height="${svgSize}" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">`;
+
+                if (iconStyle === 'rounded' || iconStyle === 'square') {
+                    const rx = iconStyle === 'rounded' ? '6' : '2';
+                    svg += `<rect width="20" height="20" x="2" y="2" rx="${rx}" fill="${iconColor}" opacity="0.1" stroke="${iconColor}" stroke-width="1"/>`;
+                }
+
+                if (iconStyle === 'outlined') {
+                    svg += `<path d="${iconMap[this.selectedSocialIcon]}" fill="none" stroke="${iconColor}" stroke-width="1.5"/>`;
+                } else {
+                    svg += `<path d="${iconMap[this.selectedSocialIcon]}" fill="${iconColor}"/>`;
+                }
+
+                svg += `</svg>`;
+
+                // Convert SVG to data URL
+                const svgBlob = new Blob([svg], { type: 'image/svg+xml' });
+                const svgUrl = URL.createObjectURL(svgBlob);
+
+                this.logoImage = svgUrl;
+                this.generateQRCode();
+            }
+
+            handleLogoUpload(event) {
+                const file = event.target.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        this.logoImage = e.target.result;
+                        this.selectedSocialIcon = null;
+                        this.generateQRCode();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+
+            toggleGradient(toggleId) {
+                const type = toggleId.replace('-gradient-toggle', '');
+                const toggle = document.getElementById(toggleId);
+                const solidContainer = document.getElementById(`${type}-solid-color`);
+                const gradientContainer = document.getElementById(`${type}-gradient-colors`);
+
+                if (toggle.checked) {
+                    solidContainer.classList.add('hidden');
+                    gradientContainer.classList.remove('hidden');
+                } else {
+                    solidContainer.classList.remove('hidden');
+                    gradientContainer.classList.add('hidden');
+                }
+
+                this.generateQRCode();
+            }
+
+            toggleLogoBgColor() {
+                const logoBackground = document.getElementById('logo-background');
+                const colorContainer = document.getElementById('logo-bg-color-container');
+
+                if (logoBackground && logoBackground.value === 'Facebook') {
+                    colorContainer.classList.remove('hidden');
+                } else {
+                    colorContainer.classList.add('hidden');
+                }
+            }
+
+            applyVisualEffects(container) {
+                const shadowEffect = document.getElementById('shadow-effect');
+                const borderStyle = document.getElementById('border-style');
+                const animationEffect = document.getElementById('animation-effect');
+                const effect3d = document.getElementById('effect-3d');
+                const borderRadius = document.getElementById('border-radius');
+                const padding = document.getElementById('qr-padding');
+
+                // Clear previous effects
+                container.className = container.className.replace(/qr-\w+/g, '');
+
+                // Apply shadow effects
+                if (shadowEffect && shadowEffect.value !== 'none') {
+                    container.classList.add(`qr-shadow-${shadowEffect.value}`);
+                }
+
+                // Apply border effects
+                if (borderStyle && borderStyle.value !== 'none') {
+                    container.classList.add(`qr-border-${borderStyle.value}`);
+                }
+
+                // Apply animation effects
+                if (animationEffect && animationEffect.value !== 'none') {
+                    container.classList.add(`qr-animate-${animationEffect.value}`);
+                }
+
+                // Apply 3D effects
+                if (effect3d && effect3d.value !== 'none') {
+                    container.classList.add(`qr-effect-${effect3d.value}`);
+                }
+
+                // Apply border radius
+                if (borderRadius && borderRadius.value !== '0') {
+                    container.style.borderRadius = `${borderRadius.value}px`;
+                }
+
+                // Apply padding
+                if (padding && padding.value !== '0') {
+                    container.style.padding = `${padding.value}px`;
+                }
+            }
+
+            createGradient(startColor, endColor) {
+                return {
+                    type: 'linear',
+                    rotation: 0,
+                    colorStops: [
+                        { offset: 0, color: startColor },
+                        { offset: 1, color: endColor }
+                    ]
+                };
+            }
+
+            applyPreset(presetName) {
+                const preset = this.presets[presetName];
+                if (preset) {
+                    // Reset all gradient toggles
+                    ['dots-gradient-toggle', 'bg-gradient-toggle', 'corner-gradient-toggle'].forEach(id => {
+                        const toggle = document.getElementById(id);
+                        if (toggle) {
+                            toggle.checked = false;
+                            this.toggleGradient(id);
+                        }
+                    });
+
+                    // Update design tab elements with null checks
+                    const dotsColorEl = document.getElementById('dots-color');
+                    const bgColorEl = document.getElementById('bg-color');
+                    const cornerColorEl = document.getElementById('corner-color');
+                    const dotsStyleEl = document.getElementById('dots-style');
+                    const cornerStyleEl = document.getElementById('corner-style');
+                    const cornerDotStyleEl = document.getElementById('corner-dot-style');
+
+                    if (dotsColorEl) dotsColorEl.value = preset.dots;
+                    if (bgColorEl) bgColorEl.value = preset.background;
+                    if (cornerColorEl) cornerColorEl.value = preset.corners;
+                    if (dotsStyleEl) dotsStyleEl.value = preset.dotsStyle;
+                    if (cornerStyleEl) cornerStyleEl.value = preset.cornerStyle;
+                    if (cornerDotStyleEl && preset.cornerDotStyle) cornerDotStyleEl.value = preset.cornerDotStyle;
+
+                    // Handle social media icon for Facebook theme
+                    if (preset.socialIcon) {
+                        this.switchLogoType('social');
+                        this.selectSocialIcon(preset.socialIcon);
+                    } else {
+                        this.switchLogoType('none');
+                    }
+
+                    // Store preset values for later use if elements don't exist yet
+                    this.activePreset = preset;
+
+                    // Update active preset button
+                    document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+                    const presetBtn = document.querySelector(`[data-preset="${presetName}"]`);
+                    if (presetBtn) presetBtn.classList.add('active');
+
+                    this.generateQRCode();
+                }
+            }
+
+            generateQRCode() {
+                const qrContainerDisplay = document.getElementById('qr-container-display');
+                const displaySize = this.previewSize;
+                const errorCorrection = document.getElementById('error-correction').value;
+
+                // Get values from design tab elements with fallbacks
+                const dotsColorEl = document.getElementById('dots-color');
+                const bgColorEl = document.getElementById('bg-color');
+                const cornerColorEl = document.getElementById('corner-color');
+                const dotsStyleEl = document.getElementById('dots-style');
+                const cornerStyleEl = document.getElementById('corner-style');
+                const marginEl = document.getElementById('qr-margin');
+
+                // Check for gradient toggles
+                const dotsGradientToggle = document.getElementById('dots-gradient-toggle');
+                const bgGradientToggle = document.getElementById('bg-gradient-toggle');
+                const cornerGradientToggle = document.getElementById('corner-gradient-toggle');
+
+                // Determine colors (solid or gradient)
+                let dotsColor, bgColor, cornerColor;
+
+                // Fix gradient application for dots
+                if (dotsGradientToggle && dotsGradientToggle.checked) {
+                    const startColorEl = document.getElementById('dots-gradient-start');
+                    const endColorEl = document.getElementById('dots-gradient-end');
+                    const startColor = startColorEl ? startColorEl.value : '#2563eb';
+                    const endColor = endColorEl ? endColorEl.value : '#7c3aed';
+                    dotsColor = {
+                        type: 'linear-gradient',
+                        rotation: 0,
+                        colorStops: [
+                            { offset: 0, color: startColor },
+                            { offset: 1, color: endColor }
+                        ]
+                    };
+                } else {
+                    dotsColor = dotsColorEl ? dotsColorEl.value : '#000000';
+                }
+
+                // Fix gradient application for background
+                if (bgGradientToggle && bgGradientToggle.checked) {
+                    const startColorEl = document.getElementById('bg-gradient-start');
+                    const endColorEl = document.getElementById('bg-gradient-end');
+                    const startColor = startColorEl ? startColorEl.value : '#f8fafc';
+                    const endColor = endColorEl ? endColorEl.value : '#e2e8f0';
+                    bgColor = {
+                        type: 'linear-gradient',
+                        rotation: 0,
+                        colorStops: [
+                            { offset: 0, color: startColor },
+                            { offset: 1, color: endColor }
+                        ]
+                    };
+                } else {
+                    bgColor = bgColorEl ? bgColorEl.value : '#ffffff';
+                }
+
+                // Fix gradient application for corners
+                if (cornerGradientToggle && cornerGradientToggle.checked) {
+                    const startColorEl = document.getElementById('corner-gradient-start');
+                    const endColorEl = document.getElementById('corner-gradient-end');
+                    const startColor = startColorEl ? startColorEl.value : '#1d4ed8';
+                    const endColor = endColorEl ? endColorEl.value : '#7c3aed';
+                    cornerColor = {
+                        type: 'linear-gradient',
+                        rotation: 0,
+                        colorStops: [
+                            { offset: 0, color: startColor },
+                            { offset: 1, color: endColor }
+                        ]
+                    };
+                } else {
+                    cornerColor = cornerColorEl ? cornerColorEl.value : '#000000';
+                }
+
+                const dotsStyle = dotsStyleEl ? dotsStyleEl.value : 'square';
+                const cornerStyle = cornerStyleEl ? cornerStyleEl.value : 'square';
+                const margin = marginEl ? parseInt(marginEl.value) : 5;
+
+                // Use fixed size for preview to ensure perfect display
+                const renderSize = displaySize;
+
+                const options = {
+                    width: renderSize,
+                    height: renderSize,
+                    type: "svg",
+                    data: this.currentData,
+                    margin: margin,
+                    dotsOptions: {
+                        color: dotsColor,
+                        type: dotsStyle
+                    },
+                    cornersSquareOptions: {
+                        color: cornerColor,
+                        type: cornerStyle
+                    },
+                    cornersDotOptions: {
+                        color: cornerColor,
+                        type: document.getElementById('corner-dot-style') ? document.getElementById('corner-dot-style').value : "square"
+                    },
+                    backgroundOptions: {
+                        color: bgColor
+                    },
+                    qrOptions: {
+                        errorCorrectionLevel: errorCorrection
+                    }
+                };
+
+                if (this.logoImage && this.logoType !== 'none') {
+                    const logoSize = document.getElementById('logo-size');
+                    const logoBackground = document.getElementById('logo-background');
+                    const logoBgColor = document.getElementById('logo-bg-color');
+
+                    options.image = this.logoImage;
+                    options.imageOptions = {
+                        hideBackgroundDots: true,
+                        imageSize: logoSize ? parseFloat(logoSize.value) : 0.4,
+                        margin: 0,
+                        crossOrigin: "anonymous"
+                    };
+
+                    // Apply logo background
+                    if (logoBackground && logoBackground.value !== 'transparent') {
+                        let bgColor;
+                        switch(logoBackground.value) {
+                            case 'white': bgColor = '#ffffff'; break;
+                            case 'black': bgColor = '#000000'; break;
+                            case 'Facebook': bgColor = logoBgColor ? logoBgColor.value : '#ffffff'; break;
+                            default: bgColor = 'transparent';
+                        }
+                        if (bgColor !== 'transparent') {
+                            options.imageOptions.backgroundOptions = { color: bgColor };
+                        }
+                    }
+                }
+
+                // Clear previous QR code
+                while (qrContainerDisplay.firstChild) {
+                    qrContainerDisplay.removeChild(qrContainerDisplay.firstChild);
+                }
+
+                if (this.qrCode) {
+                    this.qrCode.update(options);
+                } else {
+                    this.qrCode = new QRCodeStyling(options);
+                }
+
+                this.qrCode.append(qrContainerDisplay);
+                this.applyVisualEffects(qrContainerDisplay);
+                this.updateInfo();
+            }
+
+            downloadQR(extension) {
+                if (this.qrCode) {
+                    const downloadSize = parseInt(document.getElementById('qr-size').value) * 4;
+
+                    // Get values from design tab elements with gradient support
+                    const dotsGradientToggle = document.getElementById('dots-gradient-toggle');
+                    const bgGradientToggle = document.getElementById('bg-gradient-toggle');
+                    const cornerGradientToggle = document.getElementById('corner-gradient-toggle');
+
+                    let dotsColor, bgColor, cornerColor;
+
+                    // Fix gradient application for downloads - dots
+                    if (dotsGradientToggle && dotsGradientToggle.checked) {
+                        const startColorEl = document.getElementById('dots-gradient-start');
+                        const endColorEl = document.getElementById('dots-gradient-end');
+                        const startColor = startColorEl ? startColorEl.value : '#2563eb';
+                        const endColor = endColorEl ? endColorEl.value : '#7c3aed';
+                        dotsColor = {
+                            type: 'linear-gradient',
+                            rotation: 0,
+                            colorStops: [
+                                { offset: 0, color: startColor },
+                                { offset: 1, color: endColor }
+                            ]
+                        };
+                    } else {
+                        const dotsColorEl = document.getElementById('dots-color');
+                        dotsColor = dotsColorEl ? dotsColorEl.value : '#000000';
+                    }
+
+                    // Fix gradient application for downloads - background
+                    if (bgGradientToggle && bgGradientToggle.checked) {
+                        const startColorEl = document.getElementById('bg-gradient-start');
+                        const endColorEl = document.getElementById('bg-gradient-end');
+                        const startColor = startColorEl ? startColorEl.value : '#f8fafc';
+                        const endColor = endColorEl ? endColorEl.value : '#e2e8f0';
+                        bgColor = {
+                            type: 'linear-gradient',
+                            rotation: 0,
+                            colorStops: [
+                                { offset: 0, color: startColor },
+                                { offset: 1, color: endColor }
+                            ]
+                        };
+                    } else {
+                        const bgColorEl = document.getElementById('bg-color');
+                        bgColor = bgColorEl ? bgColorEl.value : '#ffffff';
+                    }
+
+                    // Fix gradient application for downloads - corners
+                    if (cornerGradientToggle && cornerGradientToggle.checked) {
+                        const startColorEl = document.getElementById('corner-gradient-start');
+                        const endColorEl = document.getElementById('corner-gradient-end');
+                        const startColor = startColorEl ? startColorEl.value : '#1d4ed8';
+                        const endColor = endColorEl ? endColorEl.value : '#7c3aed';
+                        cornerColor = {
+                            type: 'linear-gradient',
+                            rotation: 0,
+                            colorStops: [
+                                { offset: 0, color: startColor },
+                                { offset: 1, color: endColor }
+                            ]
+                        };
+                    } else {
+                        const cornerColorEl = document.getElementById('corner-color');
+                        cornerColor = cornerColorEl ? cornerColorEl.value : '#000000';
+                    }
+                    const dotsStyle = document.getElementById('dots-style').value;
+                    const cornerStyle = document.getElementById('corner-style').value;
+                    const margin = parseInt(document.getElementById('qr-margin').value);
+
+                    const options = {
+                        width: downloadSize,
+                        height: downloadSize,
+                        type: extension === 'png' ? 'canvas' : (extension === 'pdf' ? 'canvas' : extension),
+                        data: this.currentData,
+                        margin: margin,
+                        dotsOptions: {
+                            color: dotsColor,
+                            type: dotsStyle
+                        },
+                        cornersSquareOptions: {
+                            color: cornerColor,
+                            type: cornerStyle
+                        },
+                        cornersDotOptions: {
+                            color: cornerColor,
+                            type: document.getElementById('corner-dot-style') ? document.getElementById('corner-dot-style').value : "square"
+                        },
+                        backgroundOptions: {
+                            color: bgColor
+                        },
+                        qrOptions: {
+                            errorCorrectionLevel: document.getElementById('error-correction').value
+                        }
+                    };
+
+                    if (this.logoImage) {
+                        options.image = this.logoImage;
+                        options.imageOptions = {
+                            hideBackgroundDots: true,
+                            imageSize: 0.4,
+                            margin: 0,
+                            crossOrigin: "anonymous"
+                        };
+                    }
+
+                    const downloadQR = new QRCodeStyling(options);
+
+                    if (extension === 'pdf') {
+                        downloadQR.download({
+                            name: `qr-code-${this.currentType}-${Date.now()}`,
+                            extension: 'png'
+                        }).then(() => {
+                            // Note: For true PDF generation, you would need a PDF library like jsPDF
+                            console.log('PDF download simulated with PNG');
+                        });
+                    } else {
+                        downloadQR.download({
+                            name: `qr-code-${this.currentType}-${Date.now()}`,
+                            extension: extension
+                        });
+                    }
+                }
+            }
+
+            async downloadAllFormats() {
+                const formats = ['png', 'svg'];
+                for (const format of formats) {
+                    await new Promise(resolve => {
+                        setTimeout(() => {
+                            this.downloadQR(format);
+                            resolve();
+                        }, 500);
+                    });
+                }
+            }
+
+            scrollTabs(direction) {
+                const tabsContainer = document.getElementById('tabs-container');
+                const scrollAmount = 200; // pixels to scroll
+
+                if (direction === 'left') {
+                    tabsContainer.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+                } else {
+                    tabsContainer.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                }
+
+                // Update arrow visibility after scroll
+                setTimeout(() => this.updateArrowVisibility(), 300);
+            }
+
+            updateArrowVisibility() {
+                const tabsContainer = document.getElementById('tabs-container');
+                const leftArrow = document.getElementById('scroll-left');
+                const rightArrow = document.getElementById('scroll-right');
+
+                const isAtStart = tabsContainer.scrollLeft <= 0;
+                const isAtEnd = tabsContainer.scrollLeft >= (tabsContainer.scrollWidth - tabsContainer.clientWidth);
+
+                leftArrow.style.opacity = isAtStart ? '0.3' : '1';
+                leftArrow.style.pointerEvents = isAtStart ? 'none' : 'auto';
+
+                rightArrow.style.opacity = isAtEnd ? '0.3' : '1';
+                rightArrow.style.pointerEvents = isAtEnd ? 'none' : 'auto';
+
+                // Hide arrows if all tabs are visible
+                const needsScroll = tabsContainer.scrollWidth > tabsContainer.clientWidth;
+                leftArrow.style.display = needsScroll ? 'flex' : 'none';
+                rightArrow.style.display = needsScroll ? 'flex' : 'none';
+            }
+
+            updateInfo() {
+                const size = document.getElementById('qr-size').value;
+                const errorCorrection = document.getElementById('error-correction').value;
+                const typeNames = {
+                    'text': 'Text',
+                    'url': 'URL',
+                    'wifi': 'WiFi',
+                    'contact': 'Contact',
+                    'email': 'Email',
+                    'sms': 'SMS',
+                    'whatsapp': 'WhatsApp',
+                    'instagram': 'Instagram',
+                    'facebook': 'Facebook',
+                    'twitter': 'Twitter (X)',
+                    'youtube': 'YouTube',
+                    'tiktok': 'TikTok',
+                    'applink': 'App Link'
+                };
+
+                const errorLevels = {
+                    'L': 'Low (~7%)',
+                    'M': 'Medium (~15%)',
+                    'Q': 'Quartile (~25%)',
+                    'H': 'High (~30%)'
+                };
+
+                // Calculate estimated scan distance based on size
+                const scanDistance = Math.round((parseInt(size) / 100) * 0.3 * 10) / 10;
+
+                document.getElementById('qr-type').textContent = typeNames[this.currentType];
+                document.getElementById('qr-size-info').textContent = `${size}x${size}px`;
+                document.getElementById('qr-data-length').textContent = `${this.currentData.length} chars`;
+                document.getElementById('qr-error-info').textContent = errorLevels[errorCorrection];
+                document.getElementById('qr-scan-distance').textContent = `${scanDistance}m`;
+                document.getElementById('qr-timestamp').textContent = this.createdTime.toLocaleTimeString();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new QRCodeGenerator();
+        });
+    </script>
+</body>
+</html>
